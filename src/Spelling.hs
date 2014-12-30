@@ -10,12 +10,12 @@ import qualified Data.Map.Strict                  as M
 -- import           Data.Ord                         (comparing)
 import qualified Data.Set                         as S
 import           Paths_Norvigs_Spelling_Corrector (getDataFileName)
-import Data.List (intersect, inits, tails)
+import Data.List (inits, tails)
 import Control.Monad ((<=<))
+import Data.Maybe (isJust, fromMaybe)
 
--- import Control.Monad.State (get, put, runState, State)
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*>))
 
 import Data.Monoid ((<>))
 
@@ -55,26 +55,27 @@ editsOnceWith letters word = do
     editor <- mkFull begin <$> [transpose, replace letters, delete, insert letters]
     editor end
 
-known :: (Eq k) => M.Map k v -> [k] -> [k]
-known dict ws = intersect ws (M.keys dict)
+
+known :: (Eq k, Ord k) => M.Map k v -> [k] -> [k]
+known dict ws = filter (isJust . flip M.lookup dict) ws
 
 choices :: ([a] -> [a]) -> (a -> [a]) -> a -> [a]
 choices inDict edits1 word = getFirst $ 
   mkFirst (\ w -> [w]) 
   <>  mkFirst edits1 
   <>  mkFirst (edits1 <=< edits1) 
-  <> First [word]
   where
+    -- mkFirst :: (a -> [a]) -> First [a]
     mkFirst edit = First . inDict . edit $ word
 
 chooseBest :: (Ord k) => k -> M.Map k Int -> [k] -> k
 chooseBest zero dict ws = 
     fst $
-      foldl (\ (word,score) w -> let newScore = getScore $ M.lookup w dict in if newScore > score then (w,newScore) else (word,score) ) (zero,0) ws
-  where
-    getScore :: Maybe Int -> Int
-    getScore Nothing = 0
-    getScore (Just i) = i
+      foldl (\ (word,score) w -> let
+        newScore = fromMaybe 0 $ M.lookup w dict -- Double lookup here?
+          in 
+            if newScore > score then (w,newScore) else (word,score) )
+                                (zero,0) ws
 
 {- Getting the training dictionary -}
 
@@ -95,8 +96,8 @@ train = foldl' (\ dict x -> M.insertWith (+) x 1 dict) M.empty
 alphabet :: String
 alphabet = ['a' .. 'z']
 
-correct :: M.Map String Int -> String -> String
-correct dict word = chooseBest "" dict (choices (known dict) (editsOnceWith alphabet) word)
+correct :: TrainingDict -> String -> String
+correct dict word = chooseBest "" dict $ choices (known dict) (editsOnceWith alphabet) word
 
 ioCorrect :: String -> IO String
 ioCorrect word =  flip correct word <$> nWords
