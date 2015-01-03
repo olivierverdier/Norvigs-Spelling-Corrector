@@ -11,11 +11,11 @@ instance BoolLike [a] where
     bempty = []
     falthy = null
 
-newtype First a = First { getFirst :: a } deriving (Show, Eq)
+newtype First a = MkFirst { getFirst :: a } deriving (Show, Eq)
 
 instance BoolLike a => Monoid (First a) where
-    mempty = First bempty
-    mappend (First l) (First r) = First $ if falthy l then r else l
+    mempty = MkFirst bempty
+    mappend (MkFirst l) (MkFirst r) = MkFirst $ if falthy l then r else l
 
 
 -- For completeness:

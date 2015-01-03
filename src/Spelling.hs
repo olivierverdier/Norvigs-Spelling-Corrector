@@ -1,88 +1,73 @@
 module Spelling  where
--- module Spelling where
 
--- import qualified Data.ByteString.Char8            as B
-import qualified Data.Text            as B
+import Data.Text (unpack)
 import qualified Data.Text.IO as TIO
 import           Data.Char                        (isAlpha, toLower)
-import           Data.List                        (foldl')
 import qualified Data.Map.Strict                  as M
--- import           Data.Ord                         (comparing)
-import qualified Data.Set                         as S
 import           Paths_Norvigs_Spelling_Corrector (getDataFileName)
-import Data.List (inits, tails)
+import Data.List (foldl', inits, tails)
 import Control.Monad ((<=<))
-import Data.Maybe (isJust, fromMaybe)
-
-
+import Data.Maybe (mapMaybe)
 import Control.Applicative ((<$>), (<*>))
-
 import Data.Monoid ((<>))
+import First (First(MkFirst), getFirst)
 
-import First
-
-type WordSet = S.Set String
 type TrainingDict = M.Map String Int
 
 
-transpose :: [a] -> [[a]]
+transpose :: [a] -> [a]
 transpose [] = []
 transpose [_] = []
-transpose (a:b:xs) = [b:a:xs]
+transpose (a:b:xs) = b:a:xs
+
+delete :: [a] -> [a]
+delete [] = []
+delete (_:xs) = xs
+
+insert :: [a] -> [a] -> [[a]]
+insert letters l = (:l) <$> letters
 
 replace :: [a] -> [a] -> [[a]]
 replace _ [] = []
-replace candidates (_:xs) = insert candidates xs
+replace letters (_:xs) = insert letters xs
 
-delete :: [a] -> [[a]]
-delete [] = []
-delete (_:xs) = [xs]
+allEditors :: [a] -> [[a] -> [[a]]]
+allEditors letters =  [return . transpose, replace letters, return . delete, insert letters]
 
-insert :: [a] -> [a] -> [[a]]
-insert candidates l = (:l) <$> candidates
-
-
-mkFull :: [a] -> ([a] -> [[a]]) -> ([a] -> [[a]])
-mkFull begin editor l = (begin ++) <$> (editor l)
 
 splits :: [a] -> [([a],[a])]
--- splits word = [ splitAt n word | n <- [0 .. length word] ]
 splits word = zip (inits word) (tails word)
 
-editsOnceWith :: [a] -> [a] -> [[a]]
-editsOnceWith letters word = do
+editsOnceWith :: [[a]->[[a]]] -> [a] -> [[a]]
+editsOnceWith editors word = do
     (begin,end) <- splits word
-    editor <- mkFull begin <$> [transpose, replace letters, delete, insert letters]
-    editor end
+    editor <- editors
+    endedit <- editor end
+    return $ begin ++ endedit
 
 
-known :: (Eq k, Ord k) => M.Map k v -> [k] -> [k]
-known dict ws = filter (isJust . flip M.lookup dict) ws
+known :: (Eq k, Ord k) => M.Map k v -> [k] -> [(k,v)]
+known dict = mapMaybe myLookup
+    where
+      myLookup w = (,) w <$> M.lookup w dict
 
-choices :: ([a] -> [a]) -> (a -> [a]) -> a -> [a]
+choices :: ([a] -> [(a,b)]) -> (a -> [a]) -> a -> [(a,b)]
 choices inDict edits1 word = getFirst $ 
-  mkFirst (\ w -> [w]) 
+  mkFirst return
   <>  mkFirst edits1 
   <>  mkFirst (edits1 <=< edits1) 
   where
-    -- mkFirst :: (a -> [a]) -> First [a]
-    mkFirst edit = First . inDict . edit $ word
+    mkFirst edit = MkFirst . inDict . edit $ word
 
-chooseBest :: (Ord k) => k -> M.Map k Int -> [k] -> k
-chooseBest zero dict ws = 
-    fst $
-      foldl (\ (word,score) w -> let
-        newScore = fromMaybe 0 $ M.lookup w dict -- Double lookup here?
-          in 
-            if newScore > score then (w,newScore) else (word,score) )
-                                (zero,0) ws
+chooseBest :: (Ord k) => k -> [(k,Int)] -> k
+chooseBest nothing choices' = fst $ foldl (\ e@(_,v) e'@(_,v') -> if v' > v then e' else e) (nothing,0) choices'
 
 {- Getting the training dictionary -}
 
 nWords :: IO TrainingDict
 nWords = do
   ws <- getDataFileName "big.txt" >>= TIO.readFile
-  return (train . lowerWords . B.unpack $ ws)
+  return (train . lowerWords . unpack $ ws)
 
 lowerWords :: String -> [String]
 lowerWords = words . map normalize
@@ -97,63 +82,11 @@ alphabet :: String
 alphabet = ['a' .. 'z']
 
 correct :: TrainingDict -> String -> String
-correct dict word = chooseBest "" dict $ choices (known dict) (editsOnceWith alphabet) word
+correct dict word = chooseBest "??" $ choices (known dict) (editsOnceWith $ allEditors alphabet) word
 
 ioCorrect :: String -> IO String
-ioCorrect word =  flip correct word <$> nWords
+-- ioCorrect word =  correct <$> nWords <*> return word
+ioCorrect word =  do
+    dict <- nWords
+    return $ correct dict word
 
-
--- edits1 :: String -> WordSet
--- edits1 w = S.fromList $ deletes ++ transposes ++ replaces ++ inserts
---   where
---     splits = [ splitAt n w | n <- [0 .. length w - 1] ]
---     deletes = map (\(a, b) -> a ++ tail b) splits
---     transposes = [ a ++ [b1, b0] ++ bs
---                  | (a, b0:b1:bs) <- splits ]
---     replaces = [ as ++ [c] ++ bs
---                | (as, _:bs) <- splits, c <- alphabet]
---     inserts = [ a ++ [c] ++ b
---               | (a,b) <- splits, c <- alphabet]
-
-
--- edits2 :: String -> WordSet
--- edits2 = S.unions . S.toList . S.map edits1 . edits1
--- 
--- knownEdits2 :: String -> TrainingDict -> WordSet
--- knownEdits2 w nwords = edits2 w `S.intersection` M.keysSet nwords
--- 
--- known :: WordSet -> TrainingDict -> WordSet
--- known inputSet nwords = inputSet `S.intersection` M.keysSet nwords
-
--- choices :: String -> TrainingDict -> WordSet
--- choices w ws = foldr orNextIfEmpty (S.singleton w)
---   [ known (S.singleton w) ws
---   , known (edits1 w) ws
---   , knownEdits2 w ws
---   ]
---   where orNextIfEmpty x y = if S.null x then y else x
-
--- choices :: TrainingDict -> String -> [String]
-
--- chooseBest :: WordSet -> TrainingDict -> String
--- chooseBest ch ws = chooseBest' $
---   ws `M.intersection` M.fromList (map (\x -> (x, ())) (S.toList ch))
---   where
---     chooseBest' bestChs = head (map fst (sortCandidates bestChs))
---     sortCandidates = sortBy (comparing snd) . M.toList
--- 
--- correct :: TrainingDict -> String -> String
--- correct ws w = chooseBest (choices w ws) ws
--- 
-
--- 
---
--- Fold with State...
---
--- trainOnce :: (Ord k, Num v) => k -> State (M.Map k v) ()
--- trainOnce x = do
---     m <- get
---     put $ M.insertWith (+) x 1 m
--- 
--- trainAll :: (Ord k, Num v) => [k] -> M.Map k v
--- trainAll words = snd $ runState (mapM trainOnce words) M.empty
