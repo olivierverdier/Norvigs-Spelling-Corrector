@@ -3,7 +3,13 @@ Norvig's Spelling Corrector
 
 [![Build Status](https://secure.travis-ci.org/MarcoSero/Norvigs-Spelling-Corrector.svg)](http://travis-ci.org/MarcoSero/Norvigs-Spelling-Corrector)
 
-A Haskell implementation of Peter Norvig's spelling corrector. Read more [here](http://marcosero.com/blog/norvig-haskell-spelling-corrector/).
+A Haskell implementation of Peter Norvig's spelling corrector, based on that of [Marco Sero](http://marcosero.com/blog/norvig-haskell-spelling-corrector/).
+
+The code demonstrates
+
+* Using the List monad
+* Creating a typeclass and defining instances
+* Programming using polymorphic types
 
 ## Usage
 
