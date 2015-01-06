@@ -81,8 +81,8 @@ maxByOrDefault def comp = foldl (\ e e' -> if comp e' e == GT then e' else e) de
 
 {- Choose word with best score -}
 
-chooseBest :: (Ord k) => k -> [(k,Int)] -> k
-chooseBest nothing choices' = fst $ maxByOrDefault (nothing,0) (comparing snd) choices'
+chooseBest :: (Ord k, Ord v, Num v) => k -> [(k,v)] -> k
+chooseBest nothing choices' = fst $ maxByOrDefault (comparing snd) (nothing, 0) choices'
 
 {- Getting the training dictionary -}
 
