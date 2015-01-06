@@ -88,7 +88,8 @@ chooseBest nothing choices' = fst $ maxByOrDefault (nothing,0) (comparing snd) c
 
 nWords :: IO TrainingDict
 nWords = do
-  ws <- getDataFileName "big.txt" >>= readFile
+  fileName <- getDataFileName "big.txt"
+  ws <- readFile fileName
   return (train . lowerWords . unpack $ ws)
 
 lowerWords :: String -> [String]
