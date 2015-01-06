@@ -1,15 +1,29 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 module Spelling  where
 
+{- A few explicit Prelude imports -}
+import Prelude ((.), ($), fst, snd, Num, Int, (+))
+import System.IO (IO)
+import Data.Eq (Eq, (==))
+import Data.Functor (fmap)
+import Data.Ord (Ord, Ordering(GT))
+import Data.List ((++), zip)
+import Control.Monad (return, (>>=))
+
+import Data.Ord (comparing)
+import Data.String
 import Data.Text (unpack)
-import qualified Data.Text.IO as TIO
+import Data.Text.IO (readFile)
 import           Data.Char                        (isAlpha, toLower)
 import qualified Data.Map.Strict                  as M
 import           Paths_Norvigs_Spelling_Corrector (getDataFileName)
 import Data.List (foldl', inits, tails)
 import Control.Monad ((<=<))
 import Data.Maybe (mapMaybe)
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>), liftA2)
 import Data.Monoid ((<>))
+import Data.Foldable (Foldable, foldl)
+
 import First (First(MkFirst), getFirst)
 
 type TrainingDict = M.Map String Int
@@ -59,18 +73,26 @@ choices inDict edits1 word = getFirst $
   where
     mkFirst edit = MkFirst . inDict . edit $ word
 
+{- Missing function from the Data.Foldable package: maximumBy with default for
+  empty list -}
+
+maxByOrDefault :: (Foldable t) => a -> (a -> a -> Ordering) -> t a -> a
+maxByOrDefault def comp = foldl (\ e e' -> if comp e' e == GT then e' else e) def
+
+{- Choose word with best score -}
+
 chooseBest :: (Ord k) => k -> [(k,Int)] -> k
-chooseBest nothing choices' = fst $ foldl (\ e@(_,v) e'@(_,v') -> if v' > v then e' else e) (nothing,0) choices'
+chooseBest nothing choices' = fst $ maxByOrDefault (nothing,0) (comparing snd) choices'
 
 {- Getting the training dictionary -}
 
 nWords :: IO TrainingDict
 nWords = do
-  ws <- getDataFileName "big.txt" >>= TIO.readFile
+  ws <- getDataFileName "big.txt" >>= readFile
   return (train . lowerWords . unpack $ ws)
 
 lowerWords :: String -> [String]
-lowerWords = words . map normalize
+lowerWords = words . fmap normalize
   where normalize c = if isAlpha c then toLower c else ' '
 
 train :: (Ord k, Num v) => [k] -> M.Map k v
@@ -85,8 +107,4 @@ correct :: TrainingDict -> String -> String
 correct dict word = chooseBest "??" $ choices (known dict) (editsOnceWith $ allEditors alphabet) word
 
 ioCorrect :: String -> IO String
--- ioCorrect word =  correct <$> nWords <*> return word
-ioCorrect word =  do
-    dict <- nWords
-    return $ correct dict word
-
+ioCorrect =  liftA2 correct nWords . return
