@@ -2,28 +2,34 @@
 module Spelling  where
 
 {- A few explicit Prelude imports -}
-import Prelude ((.), ($), fst, snd, Num, Int, (+))
+
+import GHC.Base ((.), ($))
+import GHC.Num (Num, (+))
+import GHC.Types (Int)
+import Data.Tuple (fst, snd)
 import System.IO (IO)
 import Data.Eq (Eq, (==))
 import Data.Functor (fmap)
-import Data.Ord (Ord, Ordering(GT))
-import Data.List ((++), zip)
-import Control.Monad (return, (>>=))
+import Data.Ord (Ord, Ordering(GT),
+                comparing) -- not in Prelude
+import Data.List ((++), zip,
+                 inits, tails) -- not in Prelude
+import Control.Monad (return,
+                     (<=<)) -- not in Prelude
 
-import Data.Ord (comparing)
-import Data.String
+{- Other imports -}
+
+import Data.String (String, words)
+import Data.Char (isAlpha, toLower)
 import Data.Text (unpack)
 import Data.Text.IO (readFile)
-import           Data.Char                        (isAlpha, toLower)
-import qualified Data.Map.Strict                  as M
-import           Paths_Norvigs_Spelling_Corrector (getDataFileName)
-import Data.List (foldl', inits, tails)
-import Control.Monad ((<=<))
+import qualified Data.Map.Strict as M
 import Data.Maybe (mapMaybe)
 import Control.Applicative ((<$>), liftA2)
 import Data.Monoid ((<>))
-import Data.Foldable (Foldable, foldl)
+import Data.Foldable (Foldable, foldl')
 
+import Paths_Norvigs_Spelling_Corrector (getDataFileName)
 import First (First(MkFirst), getFirst)
 
 type TrainingDict = M.Map String Int
