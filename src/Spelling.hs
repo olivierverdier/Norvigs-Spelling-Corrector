@@ -76,8 +76,8 @@ choices inDict edits1 word = getFirst $
 {- Missing function from the Data.Foldable package: maximumBy with default for
   empty list -}
 
-maxByOrDefault :: (Foldable t) => a -> (a -> a -> Ordering) -> t a -> a
-maxByOrDefault def comp = foldl (\ e e' -> if comp e' e == GT then e' else e) def
+maxByOrDefault :: (Foldable t) => (a -> a -> Ordering) -> a -> t a -> a
+maxByOrDefault comp = foldl' (\ e e' -> if comp e' e == GT then e' else e)
 
 {- Choose word with best score -}
 
