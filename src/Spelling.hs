@@ -70,7 +70,8 @@ editsOnceWith editors word = do
 known :: (Eq k, Ord k) => M.Map k v -> [k] -> [(k,v)]
 known dict = mapMaybe myLookup
     where
-      myLookup w = (,) w <$> M.lookup w dict
+      myLookup w = -- returns either Nothing or Just (w,f) if w is found in dict
+        (,) w <$> M.lookup w dict
 
 choices :: ([a] -> [(a,b)]) -> (a -> [a]) -> a -> [(a,b)]
 choices inDict edits1 word = getFirst $ 
