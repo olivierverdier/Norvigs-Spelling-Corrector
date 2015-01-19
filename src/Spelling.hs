@@ -1,7 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 module Spelling  where
 
 {- A few explicit Prelude imports -}
+
+import Prelude ()
 
 import GHC.Base ((.), ($))
 import GHC.Num (Num, (+))
