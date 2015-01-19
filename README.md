@@ -1,5 +1,7 @@
-Norvig's Spelling Corrector [![Build Status](https://secure.travis-ci.org/MarcoSero/Norvigs-Spelling-Corrector.svg)](http://travis-ci.org/MarcoSero/Norvigs-Spelling-Corrector)
-=====
+Norvig's Spelling Corrector
+===== 
+
+[![Build Status](https://secure.travis-ci.org/MarcoSero/Norvigs-Spelling-Corrector.svg)](http://travis-ci.org/MarcoSero/Norvigs-Spelling-Corrector)
 
 A Haskell implementation of Peter Norvig's spelling corrector. Read more [here](http://marcosero.com/blog/norvig-haskell-spelling-corrector/).
 
@@ -25,4 +27,3 @@ Then you can enter terms to the program to get the corrected version of them.
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Marco Sero
