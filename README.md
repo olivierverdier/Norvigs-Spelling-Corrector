@@ -15,19 +15,19 @@ The code demonstrates
 
 In order to use or compile the program you need to have [Haskell](http://www.haskell.org/) installed.
 
-After you cloning the repository, go the repository folder and do
+After you cloning the repository, go the repository folder and run
 
 ```bash
 cabal build
 ```
 
-Now you compiled the program. There is an example Prolog file in the "usage" folder. You can run it like this:
+Now you compiled the program. You can run the executable by typing:
 
 ```bash
 ./dist/build/Norvigs-Spelling-Corrector/Norvigs-Spelling-Corrector
 ```
 
-Then you can enter terms to the program to get the corrected version of them.
+You are now in the interactive spell checker. Try a few words and see the proposed corrected spelling. You can quit with `ctrl-D`.
 
 ## License
 
