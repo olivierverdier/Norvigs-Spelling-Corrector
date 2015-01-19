@@ -26,7 +26,7 @@ import Data.Text (unpack)
 import Data.Text.IO (readFile)
 import qualified Data.Map.Strict as M
 import Data.Maybe (mapMaybe)
-import Control.Applicative ((<$>), liftA2)
+import Control.Applicative ((<$>))
 import Data.Monoid ((<>))
 import Data.Foldable (Foldable, foldl')
 
@@ -112,8 +112,10 @@ train = foldl' (\ dict x -> M.insertWith (+) x 1 dict) M.empty
 alphabet :: String
 alphabet = ['a' .. 'z']
 
-correct :: TrainingDict -> String -> String
-correct dict word = chooseBest "??" $ choices (known dict) (editsOnceWith $ allEditors alphabet) word
+correct :: TrainingDict -> String -> String -> String
+correct dict notfound word = chooseBest notfound $ choices (known dict) (editsOnceWith $ allEditors alphabet) word
 
 ioCorrect :: String -> IO String
-ioCorrect =  liftA2 correct nWords . return
+ioCorrect w =  do
+    d <- nWords
+    return $ correct d "" w

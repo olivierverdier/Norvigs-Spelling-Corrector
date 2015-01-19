@@ -10,7 +10,7 @@ repl :: TrainingDict -> IO ()
 repl ws = forever $ do
     putStr "> "
     hFlush stdout
-    getLine >>= putStrLn . correct ws
+    getLine >>= putStrLn . correct ws "??"
 
 main :: IO ()
 main = do
