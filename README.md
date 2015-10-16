@@ -11,6 +11,8 @@ The code demonstrates
 * Creating a typeclass and defining instances
 * Programming using polymorphic types
 
+See [the corresponding blog post](https://www.olivierverdier.com/posts/2015/02/07/Haskell-spelling/) for a more detailed explanation.
+
 ## Usage
 
 In order to use or compile the program you need to have [Haskell](http://www.haskell.org/) installed.
