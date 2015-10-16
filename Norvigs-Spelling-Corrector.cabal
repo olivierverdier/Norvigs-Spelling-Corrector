@@ -2,11 +2,10 @@ name:                Norvigs-Spelling-Corrector
 version:             0.1.0.0
 synopsis:            A Haskell implementation of Peter Norvig's spelling corrector
 -- description:
-homepage:            https://github.com/MarcoSero/Norvigs-Spelling-Corrector
+homepage:            https://github.com/olivierverdier/Norvigs-Spelling-Corrector
 license:             MIT
 license-file:        LICENSE
-author:              Marco Sero
-maintainer:          sero.marco@gmail.com
+author:              Olivier Verdier
 -- copyright:
 category:            Text
 build-type:          Simple
