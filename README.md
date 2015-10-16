@@ -15,16 +15,28 @@ The code demonstrates
 
 In order to use or compile the program you need to have [Haskell](http://www.haskell.org/) installed.
 
-After you cloning the repository, go the repository folder and run
+After you cloning the repository, go the repository folder.
+
+If you do not want to clutter the global Haskell installation (recommended), run:
 
 ```bash
-cabal build
+cabal sandbox init
 ```
 
-Now you compiled the program. You can run the executable by typing:
+Install the dependencies, if any are required:
+```bash
+cabal install --only-dependencies
+```
+
+Now you can build the executable:
+```bash
+cabal configure && cabal build
+```
+
+You can now run the executable by typing:
 
 ```bash
-./dist/build/Norvigs-Spelling-Corrector/Norvigs-Spelling-Corrector
+cabal run
 ```
 
 You are now in the interactive spell checker. Try a few words and see the proposed corrected spelling. You can quit with `ctrl-D`.

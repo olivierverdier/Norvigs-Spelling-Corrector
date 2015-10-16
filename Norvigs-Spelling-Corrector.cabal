@@ -16,9 +16,8 @@ data-files:          big.txt
 
 Library
   exposed-modules:     Spelling
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >=4.7,
                        ghc-prim,
-                       bytestring >=0.10 && <0.11,
                        containers >=0.5 && <0.6,
                        text
   hs-source-dirs:      src
@@ -26,9 +25,8 @@ Library
 
 executable Norvigs-Spelling-Corrector
   main-is:             Main.hs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >=4.7,
                        ghc-prim,
-                       bytestring >=0.10 && <0.11,
                        containers >=0.5 && <0.6,
                        text,
                        Norvigs-Spelling-Corrector
